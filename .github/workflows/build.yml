@@ -3,34 +3,70 @@ name: Build and Push Haven image
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: "0 * * * *"
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: haven-addon
+  UPSTREAM_IMAGE: ghcr.io/ancsemi/haven:latest
 
 jobs:
+  version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.get.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check upstream update
+        id: upstream
+        if: github.event_name != 'push'
+        run: |
+          docker pull ${{ env.UPSTREAM_IMAGE }}
+          DIGEST=$(docker inspect --format='{{.Id}}' ${{ env.UPSTREAM_IMAGE }})
+          STORED=""
+          [ -f .upstream-digest ] && STORED=$(cat .upstream-digest)
+          if [ "$STORED" != "$DIGEST" ]; then
+            echo "$DIGEST" > .upstream-digest
+            CURRENT=$(grep '^version:' config.yaml | awk '{print $2}' | tr -d '"')
+            MAJOR=$(echo "$CURRENT" | cut -d. -f1)
+            MINOR=$(echo "$CURRENT" | cut -d. -f2)
+            PATCH=$(echo "$CURRENT" | cut -d. -f3)
+            NEWVER="$MAJOR.$MINOR.$((PATCH + 1))"
+            sed -i "s/^version: \"$CURRENT\"/version: \"$NEWVER\"/" config.yaml
+            git config user.name "haven-bot"
+            git config user.email "actions@github.com"
+            git add config.yaml .upstream-digest
+            git commit -m "chore: bump to $NEWVER [skip ci]"
+            git push
+          fi
+
+      - name: Get version
+        id: get
+        run: echo "version=$(grep '^version:' config.yaml | awk '{print $2}' | tr -d '"')" >> $GITHUB_OUTPUT
+
   build-amd64:
+    needs: version
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     steps:
       - uses: actions/checkout@v4
-
       - name: Env
         run: |
-          echo "VERSION=$(grep '^version:' config.yaml | awk '{print $2}' | tr -d '"')" >> $GITHUB_ENV
+          echo "VERSION=${{ needs.version.outputs.version }}" >> $GITHUB_ENV
           echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
-
       - uses: docker/setup-buildx-action@v3
-
       - uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ env.OWNER_LC }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - uses: docker/build-push-action@v5
         with:
           context: .
@@ -38,7 +74,7 @@ jobs:
           build-args: |
             BUILD_ARCH=amd64
             BUILD_VERSION=${{ env.VERSION }}
-            BUILD_FROM=ghcr.io/ancsemi/haven:latest
+            BUILD_FROM=${{ env.UPSTREAM_IMAGE }}
           platforms: linux/amd64
           labels: |
             io.hass.arch=amd64
@@ -51,28 +87,24 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.OWNER_LC }}/${{ env.IMAGE_NAME }}-amd64:latest
 
   build-aarch64:
+    needs: version
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     steps:
       - uses: actions/checkout@v4
-
       - name: Env
         run: |
-          echo "VERSION=$(grep '^version:' config.yaml | awk '{print $2}' | tr -d '"')" >> $GITHUB_ENV
+          echo "VERSION=${{ needs.version.outputs.version }}" >> $GITHUB_ENV
           echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
-
       - uses: docker/setup-qemu-action@v3
-
       - uses: docker/setup-buildx-action@v3
-
       - uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ env.OWNER_LC }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - uses: docker/build-push-action@v5
         with:
           context: .
@@ -80,7 +112,7 @@ jobs:
           build-args: |
             BUILD_ARCH=aarch64
             BUILD_VERSION=${{ env.VERSION }}
-            BUILD_FROM=ghcr.io/ancsemi/haven:latest
+            BUILD_FROM=${{ env.UPSTREAM_IMAGE }}
           platforms: linux/arm64
           labels: |
             io.hass.arch=aarch64
