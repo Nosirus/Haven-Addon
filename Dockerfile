@@ -9,4 +9,5 @@ RUN chown node:node /app/themes/catppuccin-mocha-maroon.theme.css
 COPY run.sh /run.sh
 RUN chmod +x /run.sh
 
+ENTRYPOINT ["/bin/sh", "-c", "exec /entrypoint.sh \"$@\"", "--"]
 CMD ["/run.sh"]
