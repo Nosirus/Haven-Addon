@@ -1,6 +1,6 @@
 name: "Haven"
 description: "Self-hosted private chat (Discord alternative) - adapted for HA"
-version: "2.0.0"
+version: "1.0.0"
 slug: "haven"
 init: false
 arch:
@@ -12,4 +12,4 @@ map:
   - config:rw
 options: {}
 schema: {}
-image: ghcr.io/nosirus/haven
+image: ghcr.io/nosirus/haven-addon
