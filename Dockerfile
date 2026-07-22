@@ -9,5 +9,4 @@ RUN chown node:node /app/themes/catppuccin-mocha-maroon.theme.css
 COPY run.sh /run.sh
 RUN chmod +x /run.sh
 
-ENTRYPOINT ["/sbin/tini", "--", "/run.sh"]
-CMD ["node", "server.js"]
+CMD ["/run.sh"]
