@@ -1,0 +1,43 @@
+/**
+ * @name        Catppuccin Mocha Maroon
+ * @description Soothing pastel theme for the dark-spirited
+ * @author      catppuccin
+ * @version     1.0
+ * @icon        🐱
+ */
+:root {
+  --bg-primary:    #1e1e2e;
+  --bg-secondary:  #181825;
+  --bg-tertiary:   #11111b;
+  --bg-hover:      #313244;
+  --bg-active:     #45475a;
+  --bg-input:      #181825;
+  --bg-card:       #181825;
+
+  --accent:        #eba0ac;
+  --accent-hover:  #f2b5c0;
+  --accent-dim:    #c48994;
+  --accent-glow:   rgba(235, 160, 172, 0.3);
+
+  --text-primary:  #cdd6f4;
+  --text-secondary:#a6adc8;
+  --text-muted:    #585b70;
+  --text-link:     #89b4fa;
+
+  --border:        #313244;
+  --border-light:  #45475a;
+
+  --success:       #a6e3a1;
+  --danger:        #f38ba8;
+  --warning:       #f9e2af;
+
+  --led-on:        #a6e3a1;
+  --led-glow:      rgba(166, 227, 161, 0.5);
+
+  --font-main:     'Segoe UI', system-ui, sans-serif;
+  --font-heading:  'Segoe UI', system-ui, sans-serif;
+  --font-mono:     'Consolas', monospace;
+
+  --theme-logo:    "🐱";
+  --msg-glow:      0 0 4px rgba(235, 160, 172, 0.06);
+}

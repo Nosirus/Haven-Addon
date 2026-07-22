@@ -1,0 +1,15 @@
+name: "Haven"
+description: "Self-hosted private chat (Discord alternative) - adapted for HA"
+version: "2.0.0"
+slug: "haven"
+init: false
+arch:
+  - aarch64
+  - amd64
+ports:
+  3000/tcp: 3000
+map:
+  - config:rw
+options: {}
+schema: {}
+image: ghcr.io/nosirus/haven
