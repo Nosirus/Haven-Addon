@@ -13,9 +13,7 @@ map:
 options:
   server_name: ""
   admin_username: ""
-  public_url: ""
 schema:
   server_name: str
   admin_username: str
-  public_url: str
 image: ghcr.io/nosirus/haven-addon-{arch}
