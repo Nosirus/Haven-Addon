@@ -1,13 +1,23 @@
-FROM ghcr.io/ancsemi/haven:latest
+ARG BUILD_FROM=ghcr.io/ancsemi/haven:latest
+
+FROM ${BUILD_FROM}
+
+ARG BUILD_VERSION=1.0.0
+ARG BUILD_ARCH
+
+LABEL io.hass.version=${BUILD_VERSION}
+LABEL io.hass.type=addon
+LABEL io.hass.arch=${BUILD_ARCH}
 
 ENV NODE_ENV=production
 ENV HAVEN_DATA_DIR=/config/addons_config/haven
 
 RUN sed -i 's#DATA="/data"#DATA="${HAVEN_DATA_DIR:-/data}"#' /entrypoint.sh
+
 COPY catppuccin-mocha-maroon.theme.css /app/themes/
 RUN chown node:node /app/themes/catppuccin-mocha-maroon.theme.css
-COPY run.sh /run.sh
-RUN chmod +x /run.sh
 
-ENTRYPOINT ["/bin/sh", "-c", "exec /entrypoint.sh \"$@\"", "--"]
+COPY run.sh /run.sh
+RUN chmod a+x /run.sh
+
 CMD ["/run.sh"]
