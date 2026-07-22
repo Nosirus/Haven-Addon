@@ -22,13 +22,16 @@ jobs:
       - name: Get version
         run: echo "VERSION=$(grep '^version:' config.yaml | awk '{print $2}' | tr -d '"')" >> $GITHUB_ENV
 
+      - name: Lowercase owner
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
       - uses: home-assistant/builder/actions/build-image@2026.06.0
         with:
           arch: amd64
           build-args: |
             BUILD_FROM=ghcr.io/ancsemi/haven:latest
           container-registry-password: ${{ secrets.GITHUB_TOKEN }}
-          image: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}-amd64
+          image: ${{ env.REGISTRY }}/${{ env.OWNER_LC }}/${{ env.IMAGE_NAME }}-amd64
           image-tags: |
             ${{ env.VERSION }}
             latest
@@ -47,6 +50,9 @@ jobs:
       - name: Get version
         run: echo "VERSION=$(grep '^version:' config.yaml | awk '{print $2}' | tr -d '"')" >> $GITHUB_ENV
 
+      - name: Lowercase owner
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
       - uses: docker/setup-qemu-action@v3
 
       - uses: home-assistant/builder/actions/build-image@2026.06.0
@@ -55,7 +61,7 @@ jobs:
           build-args: |
             BUILD_FROM=ghcr.io/ancsemi/haven:latest
           container-registry-password: ${{ secrets.GITHUB_TOKEN }}
-          image: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}-aarch64
+          image: ${{ env.REGISTRY }}/${{ env.OWNER_LC }}/${{ env.IMAGE_NAME }}-aarch64
           image-tags: |
             ${{ env.VERSION }}
             latest
