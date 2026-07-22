@@ -10,6 +10,10 @@ ports:
   3000/tcp: 3000
 map:
   - config:rw
-options: {}
-schema: {}
+options:
+  server_name: "Haven"
+  admin_username: "admin"
+schema:
+  server_name: str
+  admin_username: str
 image: ghcr.io/nosirus/haven-addon
