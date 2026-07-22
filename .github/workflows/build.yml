@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: nosirus/haven-addon
 
 jobs:
   build:
@@ -21,7 +21,7 @@ jobs:
 
       - name: Extract version
         run: |
-          echo "VERSION=$(grep '^version:' config.yaml | awk '{print $2}')" >> $GITHUB_ENV
+          echo "VERSION=$(grep '^version:' config.yaml | awk '{print $2}' | tr -d '"')" >> $GITHUB_ENV
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
