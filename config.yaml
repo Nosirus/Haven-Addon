@@ -16,4 +16,4 @@ options:
 schema:
   server_name: str
   admin_username: str
-image: ghcr.io/nosirus/haven-addon
+image: ghcr.io/nosirus/haven-addon-{arch}
