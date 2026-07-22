@@ -10,4 +10,4 @@ if [ -f "$CONFIG_PATH" ]; then
   [ -n "$ADMIN" ] && export ADMIN_USERNAME="$ADMIN"
 fi
 
-exec /entrypoint.sh "$@"
+exec node server.js
