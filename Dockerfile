@@ -1,4 +1,4 @@
-ARG BUILD_FROM=ghcr.io/ancsemi/haven:latest
+ARG BUILD_FROM
 FROM ${BUILD_FROM}
 
 ARG BUILD_VERSION
