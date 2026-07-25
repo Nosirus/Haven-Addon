@@ -26,36 +26,35 @@ jobs:
       - name: Decide
         id: decide
         run: |
-          VERSION=$(grep '^version:' config.yaml | awk '{print $2}' | tr -d '"')
-
-          if [ "${{ github.event_name }}" = "schedule" ]; then
+          if [ "${{ github.event_name }}" != "push" ]; then
             docker pull ${{ env.UPSTREAM_IMAGE }}
+            UPSTREAM_VERSION=$(docker run --rm --entrypoint node ${{ env.UPSTREAM_IMAGE }} -e "console.log(require('/app/package.json').version)")
+
             DIGEST=$(docker inspect --format='{{.Id}}' ${{ env.UPSTREAM_IMAGE }})
             STORED=""
             [ -f .upstream-digest ] && STORED=$(cat .upstream-digest)
 
             if [ "$STORED" = "$DIGEST" ]; then
               echo "skip=true" >> $GITHUB_OUTPUT
-              echo "version=$VERSION" >> $GITHUB_OUTPUT
+              echo "version=$UPSTREAM_VERSION" >> $GITHUB_OUTPUT
               exit 0
             fi
 
             echo "$DIGEST" > .upstream-digest
-            MAJOR=$(echo "$VERSION" | cut -d. -f1)
-            MINOR=$(echo "$VERSION" | cut -d. -f2)
-            PATCH=$(echo "$VERSION" | cut -d. -f3)
-            NEWVER="$MAJOR.$MINOR.$((PATCH + 1))"
-            sed -i "s/^version: \"$VERSION\"/version: \"$NEWVER\"/" config.yaml
+            sed -i "s/^version: \".*\"/version: \"$UPSTREAM_VERSION\"/" config.yaml
             git config user.name "haven-bot"
             git config user.email "actions@github.com"
             git add config.yaml .upstream-digest
-            git commit -m "chore: bump to $NEWVER [skip ci]"
+            git commit -m "chore: sync to Haven v$UPSTREAM_VERSION [skip ci]"
             git push
-            VERSION=$NEWVER
-          fi
 
-          echo "skip=false" >> $GITHUB_OUTPUT
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "version=$UPSTREAM_VERSION" >> $GITHUB_OUTPUT
+          else
+            VERSION=$(grep '^version:' config.yaml | awk '{print $2}' | tr -d '"')
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          fi
 
   build-amd64:
     needs: check
