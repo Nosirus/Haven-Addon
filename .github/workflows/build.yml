@@ -28,28 +28,28 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" != "push" ]; then
             docker pull ${{ env.UPSTREAM_IMAGE }}
-            UPSTREAM_VERSION=$(docker run --rm --entrypoint node ${{ env.UPSTREAM_IMAGE }} -e "console.log(require('/app/package.json').version)")
-
             DIGEST=$(docker inspect --format='{{.Id}}' ${{ env.UPSTREAM_IMAGE }})
+            LATEST_RELEASE=$(curl -s https://api.github.com/repos/ancsemi/Haven/releases/latest | python3 -c "import sys,json; print(json.load(sys.stdin)['tag_name'].lstrip('v'))")
+
             STORED=""
             [ -f .upstream-digest ] && STORED=$(cat .upstream-digest)
 
             if [ "$STORED" = "$DIGEST" ]; then
               echo "skip=true" >> $GITHUB_OUTPUT
-              echo "version=$UPSTREAM_VERSION" >> $GITHUB_OUTPUT
+              echo "version=$LATEST_RELEASE" >> $GITHUB_OUTPUT
               exit 0
             fi
 
             echo "$DIGEST" > .upstream-digest
-            sed -i "s/^version: \".*\"/version: \"$UPSTREAM_VERSION\"/" config.yaml
+            sed -i "s/^version: \".*\"/version: \"$LATEST_RELEASE\"/" config.yaml
             git config user.name "haven-bot"
             git config user.email "actions@github.com"
             git add config.yaml .upstream-digest
-            git commit -m "chore: sync to Haven v$UPSTREAM_VERSION [skip ci]"
+            git commit -m "chore: sync to Haven v$LATEST_RELEASE [skip ci]" || true
             git push
 
             echo "skip=false" >> $GITHUB_OUTPUT
-            echo "version=$UPSTREAM_VERSION" >> $GITHUB_OUTPUT
+            echo "version=$LATEST_RELEASE" >> $GITHUB_OUTPUT
           else
             VERSION=$(grep '^version:' config.yaml | awk '{print $2}' | tr -d '"')
             echo "skip=false" >> $GITHUB_OUTPUT
