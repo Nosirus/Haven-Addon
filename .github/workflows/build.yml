@@ -29,29 +29,24 @@ jobs:
           VERSION=$(grep '^version:' config.yaml | awk '{print $2}' | tr -d '"')
 
           if [ "${{ github.event_name }}" = "schedule" ]; then
-            docker pull ${{ env.UPSTREAM_IMAGE }}
-            DIGEST=$(docker inspect --format='{{.Id}}' ${{ env.UPSTREAM_IMAGE }})
-            STORED=""
-            [ -f .upstream-digest ] && STORED=$(cat .upstream-digest)
+            LATEST_RELEASE=$(curl -s https://api.github.com/repos/ancsemi/Haven/releases/latest | python3 -c "import sys,json; print(json.load(sys.stdin)['tag_name'].lstrip('v'))")
 
-            if [ "$STORED" = "$DIGEST" ]; then
+            if [ "$LATEST_RELEASE" = "$VERSION" ]; then
               echo "skip=true" >> $GITHUB_OUTPUT
               echo "version=$VERSION" >> $GITHUB_OUTPUT
               exit 0
             fi
 
+            sed -i "s/^version: \"$VERSION\"/version: \"$LATEST_RELEASE\"/" config.yaml
+            docker pull ${{ env.UPSTREAM_IMAGE }}
+            DIGEST=$(docker inspect --format='{{.Id}}' ${{ env.UPSTREAM_IMAGE }})
             echo "$DIGEST" > .upstream-digest
-            MAJOR=$(echo "$VERSION" | cut -d. -f1)
-            MINOR=$(echo "$VERSION" | cut -d. -f2)
-            PATCH=$(echo "$VERSION" | cut -d. -f3)
-            NEWVER="$MAJOR.$MINOR.$((PATCH + 1))"
-            sed -i "s/^version: \"$VERSION\"/version: \"$NEWVER\"/" config.yaml
             git config user.name "haven-bot"
             git config user.email "actions@github.com"
             git add config.yaml .upstream-digest
-            git commit -m "chore: bump to $NEWVER [skip ci]"
+            git commit -m "chore: sync to Haven v$LATEST_RELEASE [skip ci]"
             git push
-            VERSION=$NEWVER
+            VERSION=$LATEST_RELEASE
           fi
 
           echo "skip=false" >> $GITHUB_OUTPUT
