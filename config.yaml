@@ -1,6 +1,6 @@
 name: "Haven"
 description: "Self-hosted private chat (Discord alternative) - adapted for HA"
-version: "3.50.0"
+version: "4.0.0"
 slug: "haven"
 init: false
 arch:
