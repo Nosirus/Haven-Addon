@@ -17,11 +17,13 @@ RUN sed -i 's#DATA="/data"#DATA="${HAVEN_DATA_DIR:-/data}"#' /entrypoint.sh \
 COPY ha-options.sh /ha-options.sh
 RUN chmod +x /ha-options.sh
 
-# The base image runs "exec gosu node \"$@\"" (older builds used "su-exec").
-# Match any node launcher and source our options just before it, then fail the
-# build loudly if the injection did not happen.
 RUN sed -i '/^exec .*node/i. /ha-options.sh' /entrypoint.sh \
  && grep -q '^\. /ha-options\.sh' /entrypoint.sh
+
+RUN sed -i "s#const lan = lanAddress();#const lan = (process.env.HAVEN_RELAY_LAN_IP || '').trim() || lanAddress();#" /app/src/voiceRelay/mediasoup.js \
+ && sed -i "s#const listenIp = lan || '0.0.0.0';#const listenIp = '0.0.0.0';#" /app/src/voiceRelay/mediasoup.js \
+ && grep -q 'HAVEN_RELAY_LAN_IP' /app/src/voiceRelay/mediasoup.js \
+ && grep -q "const listenIp = '0.0.0.0';" /app/src/voiceRelay/mediasoup.js
 
 COPY catppuccin-mocha-maroon.theme.css /app/themes/
 RUN chown node:node /app/themes/catppuccin-mocha-maroon.theme.css
