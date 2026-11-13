@@ -8,6 +8,8 @@ arch:
   - amd64
 ports:
   3000/tcp: 3000
+  40000/tcp: 40000
+  40000/udp: 40000
 map:
   - config:rw
 options:
