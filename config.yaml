@@ -15,7 +15,9 @@ map:
 options:
   server_name: ""
   admin_username: ""
+  relay_lan_ip: ""
 schema:
   server_name: str
   admin_username: str
+  relay_lan_ip: str?
 image: ghcr.io/nosirus/haven-addon-{arch}
